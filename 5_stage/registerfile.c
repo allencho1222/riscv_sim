@@ -10,6 +10,7 @@ struct two_reg_data register_read
 }
 
 void register_write(unsigned int* register_file, 
-		unsigned int rd, unsigned int data) {
-	register_file[rd] = data;
+		unsigned int rd, unsigned int data, unsigned int reg_write) {
+	if (reg_write)
+		register_file[rd] = data;
 }

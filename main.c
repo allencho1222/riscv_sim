@@ -11,12 +11,25 @@ unsigned char memory[4096];
 void execute_one(char* file_name);
 
 int main(int argc, char **argv) {
-	int opt;
+	//int opt;
 	int break_point[10];
 	int break_idx = 0;	// 0 : there was no break point
 	char file_name[20];
 	int i = 0;
+	char command;
 
+	strcpy(file_name, argv[1]);
+
+	program_head();
+	printf("Command : ");
+	scanf("%c", &command);
+
+	// TODO : program launch;
+	execute(file_name, command);
+	printf("------------------------------------------\n");
+	program_output();
+
+	/*
 	while((opt = getopt(argc, argv, "srjb:f:")) != -1) {
 		switch(opt) {
 			case 'f':
@@ -41,34 +54,11 @@ int main(int argc, char **argv) {
 				printf("option end\n");
 		}
 	}
+	*/
 	return 0;
 }
 
-unsigned int fetch(FILE* program, unsigned int* pc) {
-	int i = 0;
-	unsigned char inst[4];
-	unsigned int binary_inst = 0b0;
-
-	if (fread(inst, sizeof(inst), 1, program) == 0) {
-		return 0;
-	}
-	printf("PC: %08x\t", *pc);
-	
-	// convert binary data into unsigned integer
-	// has to consider little-endian form
-	for (i = sizeof(inst) - 1; i >= 0; i--)
-		binary_inst |= ((unsigned int) inst[i] << (i * 8));
-
-	(*pc) += 0x4;
-
-	printf("%08x\n", binary_inst);
-
-	return binary_inst;
-}
-
-unsign
-
-void execute_one(char* file_name) {
+void execute(char* file_name, char command) {
 	FILE* program = fopen(file_name, "rb");
 	unsigned int pc = PC_START;
 	unsigned int fetched_inst;
@@ -78,43 +68,61 @@ void execute_one(char* file_name) {
 	while ((fetched_inst = fetch(program, &pc)) != (unsigned int) 0) {
 		struct ctrl_signal ctrl_sig;
 		struct two_reg_data reg_read_data;
-		unsigned int reg_write_data;
 		unsigned int rs1, rs2, rd;
 		unsigned int alu_in1, alu_in2, alu_out;
+		unsigned int memory_loaded_data;
+		unsigned int reg_write_data;
 
 		// RISC-V architecture can extract rs1, rs2, rd before decoding
 		rs1 = GET_RS1(fetched_inst);
 		rs2 = GET_RS2(fetched_inst);
-		rs3 = GET_RS3(fetched_inst);
+		rd = GET_RD(fetched_inst);
 
 		ctrl_sig = decode(fetched_inst);
 		reg_read_data = register_read(register_file, rs1, rs2);
 
 		// TODO : special case -> LUI, AUIPC, JAL
 		// RS1 always goes into ALU, thus, we only consider RS2 type
-		// TODO : consider store instruction
 		alu_in1 = reg_data.rs1_data;
-		if(ctrl_sig.rs2_type == RS2) {
-			alu_in2 = reg_data.rs2_data;
-		} else if (ctrl_sig.rs2_type == SHM) {
-			alu_in2 = GET_SHM(inst);
-		} else if (ctrl_sig.rs2_type == IMM) {
-			// TODO : maybe need more classification
-			if (ctrl_sig.imm_type == IMM_I) {
-				alu_in2 = GET_I_IMM(inst);
-			} else if (ctrl_sig.imm_type == IMM_S) {
-				alu_in2 = GET_S_IMM(inst);
-			}
-		} else {
-			printf("wrong instruction came to alu input\n")
-		}
+		alu_in2 = get_alu_input2(ctrl_sig.rs2_type, reg_data.rs2_data);
 		alu_out = alu(alu_in1, alu_in2, ctrl_sig.alu_fn);
 
-		// FN3_NONE should not generate output_value from memory
-		memory_rw(memory, ctrl_sig.mem_write, ctrl_sig.ctrl_sig.mem_type, alu_out, reg_read_data.rs2_data);
+		memory_loaded_data = memory_rw(memory, ctrl_sig.mem_write, ctrl_sig.mem_read, 
+					ctrl_sig.ctrl_sig.mem_type, alu_out, reg_read_data.rs2_data);
 		
 		// data to register write : from memory or alu
+		reg_write_data = (ctrl_sig.mem_read) ? memory_loaded_data : alu_out;
+		register_write(register_file, rd, reg_write_data, ctrl_sig.reg_write);
+		if (command == 's')
+			break;
+	}
+}
 
-		register_write(register_file, rd, ctrl_sig.reg_write);
+unsigned int get_alu_input2(struct ctrl_signal ctrl_sig, unsigned int rs2_data) {
+	if(ctrl_sig.rs2_type == RS2) {
+		return rs2_data;
+	} else if (ctrl_sig.rs2_type == SHM) {
+		return GET_SHM(inst);
+	} else if (ctrl_sig.rs2_type == IMM) {
+		return get_imm_operand(ctrl_sig.imm_type);
+	} else {
+		printf("wrong instruction came to alu input\n")
+	}
+}
+
+unsigned int get_imm_operand(unsigned int imm_type) {
+	if (imm_type == IMM_I) {
+		return SIGN_EXT_I(GET_I_IMM(inst));
+	} else if (imm_type == IMM_S) {
+		return SIGN_EXT_S(GET_S_IMM(inst));
+	} else if (imm_type == IMM_SB) {
+		return SIGN_EXT_SB(GET_SB_IMM(inst));
+	} else if (imm_type == IMM_U) {
+		return SIGN_EXT_U(GET_U_IMM(inst));
+	} else if (imm_type == IMM_UJ) {
+		return SIGN_EXT_UJ(GET_UJ_IMM(inst));
+	} else {	// IMM_NONE
+		printf("current instruction does not have immediate field\n");
+		return 0;
 	}
 }
