@@ -3,6 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "5_stage/fetch.h"
+#include "5_stage/decode.h"
+#include "5_stage/alu.h"
+#include "5_stage/memory.h"
+#include "5_stage/registerfile.h"
+
 #define PC_START 0x0
 
 unsigned int register_file[32];

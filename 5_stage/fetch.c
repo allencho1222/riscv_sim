@@ -1,3 +1,5 @@
+#include "fetch.h"
+
 unsigned int fetch(FILE* program, unsigned int* pc) {
 	int i = 0;
 	unsigned char inst[4];

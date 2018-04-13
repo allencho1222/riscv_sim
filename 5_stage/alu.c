@@ -1,3 +1,5 @@
+#include "alu.h"
+
 unsigned int alu(signed int input1, signed int input2, unsigned int fn) {
 	// input1 : rs1 data
 	// input2 : rs2 data
@@ -20,6 +22,7 @@ unsigned int alu(signed int input1, signed int input2, unsigned int fn) {
 	  case ALU_SLL:	// shift amount represented in register -> lower 5 bits of input2(rs2 data)
 		  return input1 << (31 & input2);
 
+		  /*
 		  // TODO : check right shift pattern to know whether it is arith or not
 	  case SRLI:	// right shift on unsigned value -> logical shift
 		  return (unsigned int)input1 >> input2;
@@ -29,7 +32,8 @@ unsigned int alu(signed int input1, signed int input2, unsigned int fn) {
 		  return input1 >> input2;
 	  case SRA:
 		  return input1 >> (31 & input2);
-	  case default:
+		  */
+	  default:
 		printf("ALU module got an error regarding ALU function\n");
 		return 0;
   }

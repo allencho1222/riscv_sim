@@ -1,6 +1,7 @@
-struct two_reg_data register_read
-	(unsigned int* register_file, unsigned int rs1, 
-	 unsigned int rs2) {
+#include "registerfile.h"
+
+struct two_reg_data register_read (unsigned int* register_file, 
+	unsigned int rs1, unsigned int rs2) {
 
 	struct two_reg_data reg_data;
 	reg_data.rs1_data = register_file[rs1];

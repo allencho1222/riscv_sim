@@ -1,8 +1,4 @@
-#include alu_fn.h
+#include "decode.h"
+#include <stdio.h>
 
-struct alu_output {
-  unsigned int  result;
-  int           compare;
-};
-
-alu_output alu(unsigned int input1, unsigned int input2, alu_func fn);
+unsigned int alu(signed int input1, signed int input2, unsigned int fn);

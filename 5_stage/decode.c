@@ -1,116 +1,110 @@
 #include "decode.h"
 
 void set_load_sig(unsigned int inst, struct ctrl_signal *ctrl_sig) {
-  inst->ctrl_sig.alu_fn = ALU_ADD;
-  inst->ctrl_sig.imm_type = IMM_I;
-  inst->ctrl_sig.rs1_type = RS1;
-  inst->ctrl_sig.rs2_type = IMM;
-  inst->ctrl_sig.mem_type = MEM_TYPE(inst->inst);
-  inst->reg_write = 1;
-  inst->mem_write = 0;
-  inst->mem_read = 1;
+  ctrl_sig->alu_fn = ALU_ADD;
+  ctrl_sig->imm_type = IMM_I;
+  ctrl_sig->rs1_type = RS1;
+  ctrl_sig->rs2_type = IMM;
+  ctrl_sig->mem_type = MEM_TYPE(inst);
+  ctrl_sig->reg_write = 1;
+  ctrl_sig->mem_write = 0;
+  ctrl_sig->mem_read = 1;
 } 
 
 void set_store_sig(unsigned int inst, struct ctrl_signal *ctrl_sig) {
-  inst->ctrl_sig.alu_fn = ALU_ADD;
-  inst->ctrl_sig.imm_type = IMM_S;
-  inst->ctrl_sig.rs1_type = RS1;
-  inst->ctrl_sig.rs2_type = IMM;
-  inst->ctrl_sig.mem_type = MEM_TYPE(inst->inst);
-  inst->reg_write = 0;
-  inst->mem_write = 1;
-  inst->mem_read = 0;
+  ctrl_sig->alu_fn = ALU_ADD;
+  ctrl_sig->imm_type = IMM_S;
+  ctrl_sig->rs1_type = RS1;
+  ctrl_sig->rs2_type = IMM;
+  ctrl_sig->mem_type = MEM_TYPE(inst);
+  ctrl_sig->reg_write = 0;
+  ctrl_sig->mem_write = 1;
+  ctrl_sig->mem_read = 0;
 }
 
 void set_arith_imm_sig(unsigned int inst, struct ctrl_signal *ctrl_sig) {
-	int alu_type = ALU_TYPE(inst->inst);
+	int alu_type = ALU_TYPE(inst);
 	if (alu_type == 0b101) {
-		if (COMP_FN7(inst->inst) == 0b0000000) {
+		if (GET_FN7(inst) >> 25 == 0b0000000) {
 			alu_type = ALU_SRL;
 		} else {
 			alu_type = ALU_SRA;
 		}
 	} else if (alu_type == 0b000) {
-		if (COMP_FN7(inst->inst) == 0b0000000) {
+		if (GET_FN7(inst) >> 25 == 0b0000000) {
 			alu_type = ALU_SUB;
 		} else {
 			alu_type = ALU_ADD;
 		}
 	} else {}
-	inst->ctrl_sig.alu_fn = alu_type;
-	inst->ctrl_sig.imm_type = IMM_I;
-	inst->ctrl_sig.rs1_type = RS1;
-	inst->ctrl_sig.rs2_type = IMM;
-	inst->ctrl_sig.mem_type = FN3_NONE;
-  	inst->reg_write = 1;
-	inst->mem_write = 0;
+	ctrl_sig->alu_fn = alu_type;
+	ctrl_sig->imm_type = IMM_I;
+	ctrl_sig->rs1_type = RS1;
+	ctrl_sig->rs2_type = IMM;
+	ctrl_sig->mem_type = FN3_NONE;
+  	ctrl_sig->reg_write = 1;
+	ctrl_sig->mem_write = 0;
 }
 
 void set_branch_sig(unsigned int inst, struct ctrl_signal *ctrl_sig) {
 	// TODO : branch alu type
-	inst->ctrl_sig.alu_fn = ALU_TYPE(inst->inst);
-	inst->ctrl_sig.imm_type = IMM_SB;
-	inst->ctrl_sig.rs1_type = RS1;
-	inst->ctrl_sig.rs2_type = RS2;
-	inst->ctrl_sig.mem_type = FN3_NONE;
-  	inst->reg_write = 0;
-	inst->mem_write = 0;
-	inst->mem_read = 0;
+	ctrl_sig->alu_fn = ALU_TYPE(inst);
+	ctrl_sig->imm_type = IMM_SB;
+	ctrl_sig->rs1_type = RS1;
+	ctrl_sig->rs2_type = RS2;
+	ctrl_sig->mem_type = FN3_NONE;
+  	ctrl_sig->reg_write = 0;
+	ctrl_sig->mem_write = 0;
+	ctrl_sig->mem_read = 0;
 }
 
 void set_arith_norm_sig(unsigned int inst, struct ctrl_signal *ctrl_sig) {
-	int alu_type = ALU_TYPE(inst->inst);
+	int alu_type = ALU_TYPE(inst);
 	if (alu_type == 0b101) {
-		if (COMP_FN7(inst->inst) == 0b0000000) {
+		if (GET_FN7(inst) >> 25 == 0b0000000) {
 			alu_type = ALU_SRL;
 		} else {
 			alu_type = ALU_SRA;
 		}
 	} else if (alu_type == 0b000) {
-		if (COMP_FN7(inst->inst) == 0b0000000) {
+		if (GET_FN7(inst) >> 25 == 0b0000000) {
 			alu_type = ALU_SUB;
 		} else {
 			alu_type = ALU_ADD;
 		}
 	} else {}
-	inst->ctrl_sig.alu_fn = alu_type;
-	inst->ctrl_sig.imm_type = IMM_NONE;
-	inst->ctrl_sig.rs1_type = RS1;
-	inst->ctrl_sig.rs2_type = RS2;
-	inst->ctrl_sig.mem_type = FN3_NONE;
-  	inst->reg_write = 1;
-	inst->mem_write = 0;
-	inst->mem_read = 0;
+	ctrl_sig->alu_fn = alu_type;
+	ctrl_sig->imm_type = IMM_NONE;
+	ctrl_sig->rs1_type = RS1;
+	ctrl_sig->rs2_type = RS2;
+	ctrl_sig->mem_type = FN3_NONE;
+  	ctrl_sig->reg_write = 1;
+	ctrl_sig->mem_write = 0;
+	ctrl_sig->mem_read = 0;
 }
 
 void set_arith_shift_shm_sig(unsigned int inst, struct ctrl_signal *ctrl_sig) {
-	int alu_type = ALU_TYPE(inst->inst);
+	int alu_type = ALU_TYPE(inst);
 	if (alu_type == 0b101) {
-		if (COMP_FN7(inst->inst) == 0b0000000) {
+		if (GET_FN7(inst) >> 25 == 0b0000000) {
 			alu_type = ALU_SRL;
 		} else {
 			alu_type = ALU_SRA;
 		}
-	} else if (alu_type == 0b000) {
-		if (COMP_FN7(inst->inst) == 0b0000000) {
-			alu_type = ALU_SUB;
-		} else {
-			alu_type = ALU_ADD;
-		}
 	} else {}
-	inst->ctrl_sig.alu_fn = alu_type;
-	inst->ctrl_sig.imm_type = IMM_NONE
-	inst->ctrl_sig.rs1_type = RS1;
-	inst->ctrl_sig.rs2_type = SHM
-	inst->ctrl_sig.mem_type = FN3_NONE;
-  	inst->reg_write = 1;
-	inst->mem_write = 0;
-	inst->mem_read = 0;
+	ctrl_sig->alu_fn = alu_type;
+	ctrl_sig->imm_type = IMM_NONE;
+	ctrl_sig->rs1_type = RS1;
+	ctrl_sig->rs2_type = SHM;
+	ctrl_sig->mem_type = FN3_NONE;
+  	ctrl_sig->reg_write = 1;
+	ctrl_sig->mem_write = 0;
+	ctrl_sig->mem_read = 0;
 }
 
 struct ctrl_signal decode(unsigned int inst) {
 	struct ctrl_signal ctrl_sig;
-	switch (COMP_OP(inst) | COMP_FN3(inst)) {
+	switch (GET_OP(inst) | GET_FN3(inst)) {
 		case LB:
 		case LH:
 		case LW:
@@ -121,7 +115,7 @@ struct ctrl_signal decode(unsigned int inst) {
 		case SB:
 		case SH:
 		case SW:
-			set_store_sig(inst);
+			set_store_sig(inst, &ctrl_sig);
 			break;
 		case ADDI:
 		case SLTI:
@@ -151,8 +145,8 @@ struct ctrl_signal decode(unsigned int inst) {
 		case JALR:
 			// TODO
 			break;
-		case default:
-			switch (COMP_OP(inst) | COMP_FN3(inst) | COMP_FN7(inst)) {
+		default:
+			switch (GET_OP(inst) | GET_FN3(inst) | GET_FN7(inst)) {
 				case SUB:
 				case ADD:
 				case SLL:
@@ -168,9 +162,9 @@ struct ctrl_signal decode(unsigned int inst) {
 				case SLLI:
 				case SRLI:
 				case SRAI:
-					set_arith_shift_imm_sig(inst, &ctrl_sig);
+					set_arith_shift_shm_sig(inst, &ctrl_sig);
 					break;
-				case default:
+				default:
 					printf("undefined instructions can't be decoded\n");
 			}
 	}

@@ -1,3 +1,5 @@
+#include "memory.h"
+
 unsigned int memory_rw(unsigned char* memory, unsigned int mem_write, unsigned int mem_read, unsigned int mem_type, unsigned int addr, unsigned int data) {
 	// BYTE : 0, HALF : 2, WORD : 4
 	
@@ -29,7 +31,7 @@ unsigned int memory_rw(unsigned char* memory, unsigned int mem_write, unsigned i
 			case WORD:
 				memcpy(memory + addr, &data, 4);
 				break;
-			case default:
+			default:
 				printf("memory data type error\n");
 				break;
 		}
@@ -53,7 +55,7 @@ unsigned int memory_rw(unsigned char* memory, unsigned int mem_write, unsigned i
 			case HALFU:
 				memcpy(&data_loaded, memory + addr, 2);
 				break;
-			case default:
+			default:
 				printf("memory data type error\n");
 				break;
 		}

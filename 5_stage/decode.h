@@ -1,3 +1,7 @@
+#include "../util/maskop.h"
+#include "../instruction/instructions.h"
+#include <stdio.h>
+
 // memory type
 #define BYTE	0b00000000000000000000000000000000
 #define HALF	0b00000000000000000001000000000000
@@ -35,10 +39,10 @@
 #define IMM	  0b1000	
 
 // load/store memory type
-#define MEM_TYPE(X) (COMP_FN3(X))
+#define MEM_TYPE(X) (GET_FN3(X))
 
 // alu type
-#define ALU_TYPE(X) (COMP_FN(X))
+#define ALU_TYPE(X) (GET_FN3(X))
 
 #define FN3_NONE	0b11111
 
@@ -56,4 +60,4 @@ struct ctrl_signal {
 
 
 // decode instructions
-struct ctrl_signal decode(struct instruction* inst);
+struct ctrl_signal decode(unsigned int inst);
