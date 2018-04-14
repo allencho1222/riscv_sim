@@ -32,8 +32,7 @@ int main(int argc, char **argv) {
 
 	program_head();
 	printf("Command : ");
-	scanf("%c", &command);
-	
+	scanf("%c", &command); 
 
 	execute(file_name, command);
 	printf("------------------------------------------\n");
@@ -61,6 +60,7 @@ void execute(char* file_name, unsigned char cmd) {
 
 		output_pc = pc - 0x4;
 		// RISC-V architecture can extract rs1, rs2, rd before decoding
+		// register file array starts at zero index, so we substract 1 from register
 		rs1 = GET_RS1(fetched_inst);
 		rs2 = GET_RS2(fetched_inst);
 		rd = GET_RD(fetched_inst);

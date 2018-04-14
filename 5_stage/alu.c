@@ -9,9 +9,9 @@ unsigned int alu(signed int input1, signed int input2, unsigned int fn) {
 	// input1 : rs1 data
 	// input2 : rs2 data
 	// fn : alu function
+	print_value(input1, input2);
   switch (fn) {
 	  case ALU_ADD:	// signed
-		  print_value(input1, input2);
 		  return (input1) + (input2);
 	  case ALU_SUB:
 		  return (input1) - (input2);

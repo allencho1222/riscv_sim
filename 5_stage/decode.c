@@ -106,27 +106,27 @@ struct ctrl_signal decode(unsigned int inst, char* inst_str) {
 					strcpy(inst_str, "ANDI");
 					break;
 				case BEQ:
-					set_ctrl_sig(&ctrl_sig, ALU_SEQ, IMM_SB, RS1, IMM, FN3_NONE, 0, 0, 0, 1, 0, 0, 0);
+					set_ctrl_sig(&ctrl_sig, ALU_SEQ, IMM_SB, RS1, RS2, FN3_NONE, 0, 0, 0, 1, 0, 0, 0);
 					strcpy(inst_str, "BEQ");
 					break;
 				case BNE:
-					set_ctrl_sig(&ctrl_sig, ALU_SNE, IMM_SB, RS1, IMM, FN3_NONE, 0, 0, 0, 1, 0, 0, 0);
+					set_ctrl_sig(&ctrl_sig, ALU_SNE, IMM_SB, RS1, RS2, FN3_NONE, 0, 0, 0, 1, 0, 0, 0);
 					strcpy(inst_str, "BNE");
 					break;
 				case BLT:
-					set_ctrl_sig(&ctrl_sig, ALU_SLT, IMM_SB, RS1, IMM, FN3_NONE, 0, 0, 0, 1, 0, 0, 0);
+					set_ctrl_sig(&ctrl_sig, ALU_SLT, IMM_SB, RS1, RS2, FN3_NONE, 0, 0, 0, 1, 0, 0, 0);
 					strcpy(inst_str, "BLT");
 					break;
 				case BGE:
-					set_ctrl_sig(&ctrl_sig, ALU_SGE, IMM_SB, RS1, IMM, FN3_NONE, 0, 0, 0, 1, 0, 0, 0);
+					set_ctrl_sig(&ctrl_sig, ALU_SGE, IMM_SB, RS1, RS2, FN3_NONE, 0, 0, 0, 1, 0, 0, 0);
 					strcpy(inst_str, "BGE");
 					break;
 				case BLTU:
-					set_ctrl_sig(&ctrl_sig, ALU_SLTU, IMM_SB, RS1, IMM, FN3_NONE, 0, 0, 0, 1, 0, 0, 0);
+					set_ctrl_sig(&ctrl_sig, ALU_SLTU, IMM_SB, RS1, RS2, FN3_NONE, 0, 0, 0, 1, 0, 0, 0);
 					strcpy(inst_str, "BLTU");
 					break;
 				case BGEU:
-					set_ctrl_sig(&ctrl_sig, ALU_SGEU, IMM_SB, RS1, IMM, FN3_NONE, 0, 0, 0, 1, 0, 0, 0);
+					set_ctrl_sig(&ctrl_sig, ALU_SGEU, IMM_SB, RS1, RS2, FN3_NONE, 0, 0, 0, 1, 0, 0, 0);
 					strcpy(inst_str, "BGEU");
 					break;
 				default:
