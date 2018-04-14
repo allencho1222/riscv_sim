@@ -9,7 +9,6 @@ unsigned int alu(signed int input1, signed int input2, unsigned int fn) {
 	// input1 : rs1 data
 	// input2 : rs2 data
 	// fn : alu function
-	print_value(input1, input2);
   switch (fn) {
 	  case ALU_ADD:	// signed
 		  return (input1) + (input2);
@@ -39,16 +38,8 @@ unsigned int alu(signed int input1, signed int input2, unsigned int fn) {
 		  return (input1 + ((input2) << 12) & 0b11111111111111111111000000000000);
 	  case ALU_LUI:
 		  return (input1 + ((input2) << 12) & 0b11111111111111111111000000000000);
-		  /*
-	  case ALU_SRLI:	// right shift on unsigned value -> logical shift
-		  return (unsigned int)(input1) >> (input2);
-		  */
 	  case ALU_SRL:
 		  return (unsigned int)(input1) >> (31 & (input2));
-		  /*
-	  case ALU_SRAI:	// right shift on singed value -> arithmetic shift
-		  return (input1) >> (input2);
-		  */
 	  case ALU_SRA:
 		  return (input1) >> (31 & (input2));
 	  case ALU_JAL:

@@ -13,8 +13,6 @@ unsigned int fetch(FILE* program, unsigned int* pc) {
 		binary_inst |= ((unsigned int) inst[i] << (i * 8));
 	}
 	(*pc) = ftell(program);
-	printf("next pc : %08x\n", (*pc));
-	printf("binary_inst_in fetch: %0x\n", binary_inst);
 
 	return binary_inst;
 }

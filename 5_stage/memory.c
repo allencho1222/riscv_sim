@@ -39,6 +39,7 @@ unsigned int memory_rw(unsigned char* memory,
 
 	// store
 	if (mem_write) {
+		//printf("mem addr: %d\n", addr);
 		switch (mem_type) {
 			case BYTE:
 				memcpy(memory + addr, &data, 1);

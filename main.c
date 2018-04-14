@@ -11,6 +11,8 @@
 #include "util/util.h"
 
 #define PC_START 0x0
+#define SP_START 0xEFF
+#define GP_START 0x100
 
 unsigned int register_file[32];
 unsigned char memory[4096];
@@ -24,18 +26,20 @@ int main(int argc, char **argv) {
 	//int opt;
 	int break_point[10];
 	int break_idx = 0;	// 0 : there was no break point
-	char file_name[20];
+	char file_name[100];
 	int i = 0;
 	unsigned char command;
 
 	strcpy(file_name, argv[1]);
+
+	register_file[2] = SP_START;	// init sp
+	register_file[3] = GP_START;	// init gp
 
 	program_head();
 	printf("Command : ");
 	scanf("%c", &command); 
 
 	execute(file_name, command);
-	printf("------------------------------------------\n");
 
 	return 0;
 }
@@ -50,6 +54,12 @@ void execute(char* file_name, unsigned char cmd) {
 	struct display_data output;
 	char *inst_str = (char *)malloc(10);
 
+	output.memory = memory;
+	output.reg_file = register_file;
+	output.pc = &output_pc;
+	output.binary_inst = &fetched_inst;
+	output.inst = inst_str;
+
 	while ((fetched_inst = fetch(program, &pc)) != (unsigned int) 0) {
 		struct ctrl_signal ctrl_sig;
 		struct two_reg_data reg_read_data;
@@ -57,6 +67,7 @@ void execute(char* file_name, unsigned char cmd) {
 		unsigned int alu_in1, alu_in2, alu_out;
 		unsigned int memory_loaded_data;
 		unsigned int reg_write_data;
+		//printf("%08x\t", fetched_inst);
 
 		output_pc = pc - 0x4;
 		// RISC-V architecture can extract rs1, rs2, rd before decoding
@@ -64,7 +75,6 @@ void execute(char* file_name, unsigned char cmd) {
 		rs1 = GET_RS1(fetched_inst);
 		rs2 = GET_RS2(fetched_inst);
 		rd = GET_RD(fetched_inst);
-		printf("rs1 : %d, rs2 : %d, rd : %d\n", rs1, rs2, rd);
 
 		ctrl_sig = decode(fetched_inst, inst_str);
 		reg_read_data = register_read(register_file, rs1, rs2);
@@ -72,32 +82,42 @@ void execute(char* file_name, unsigned char cmd) {
 
 		// RS1 always goes into ALU, thus, we only consider RS2 type
 		// RS1 can be zero or PC or RS1
-		alu_in1 = get_alu_input1(ctrl_sig, reg_read_data.rs1_data, pc);
-		printf("alu_in1: %08x\n", alu_in1);
+		// when offset is added to pc, pc has to have current pc, not next pc, so we substract 0x4
+		alu_in1 = get_alu_input1(ctrl_sig, reg_read_data.rs1_data, pc - 0x4);
+		//printf("get1 pass\t");
 		alu_in2 = get_alu_input2(ctrl_sig, reg_read_data.rs2_data, GET_SHM(fetched_inst), fetched_inst);
-		printf("alu_in2: %08x\n", alu_in2);
+		//printf("get2 pass\t");
 		alu_out = alu(alu_in1, alu_in2, ctrl_sig.alu_fn);
+		//printf("alu out pass\n");
+		//printf("alu_in1 : %d, alu_in2 : %d, alu_out : %d \n", alu_in1, alu_in2, alu_out);
 
 		// if instruction is branch instruction and alu_out is 1
 		if (ctrl_sig.is_branch && alu_out) {
-			printf("branch occur \n");
-			output_pc = pc - 0x4;
+			//output_pc = pc - 0x4;
 			pc += ((unsigned int)pc + ((unsigned int)SIGN_EXT_SB(GET_SB_IMM(fetched_inst)) * (unsigned int)2) - 0x4);
 			// SEEK_CUR indicates next pc
 			fseek(program, pc, SEEK_SET);
-			goto OUTPUT;
-			//continue;
+			program_output(output);
+			continue;
 		}
-		if (ctrl_sig.is_jal || ctrl_sig.is_jalr) {
-			printf("JAL or JALR occur\n");
-			output_pc = pc - 0x4;
+		if (ctrl_sig.is_jal) {
+			//output_pc = pc - 0x4;
 			pc_copied = pc;
 			pc = alu_out;
 			fseek(program, pc, SEEK_SET);
 		}
+		if (ctrl_sig.is_jalr) {
+			//output_pc = pc - 0x4;
+			pc_copied = pc;
+			pc = alu_out;
+			fseek(program, pc, SEEK_SET);
+			if (register_file[1] == 0xc) {
+				program_output(output);	// 'r' command stops here
+				break;
+			}
+		}
 		if (ctrl_sig.is_aui) {
-			printf("AUIPC occur\n");
-			output_pc = pc- 0x4;
+			//output_pc = pc- 0x4;
 			pc = alu_out;
 			fseek(program, pc, SEEK_SET);
 		}
@@ -112,27 +132,21 @@ void execute(char* file_name, unsigned char cmd) {
 			register_write(register_file, rd, reg_write_data, ctrl_sig.reg_write);
 		}
 
-		OUTPUT:
-		output.memory = memory;
-		output.reg_file = register_file;
-		output.pc = output_pc;
-		output.binary_inst = fetched_inst;
-		memcpy(output.inst, inst_str, 10);
-
 		if (command == 'r')
 			continue;
 
 		program_output(output);
-		printf("---------------------------------------------\n\n");
 
 		printf("Command: ");
 		scanf(" %c", &command);
 
+		/*
 		if (command == 's') {
 			continue;
 		} else if (command == 'r') {
 			continue;
 		} else {}
+		*/
 	}
 }
 

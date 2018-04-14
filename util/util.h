@@ -5,9 +5,9 @@
 struct display_data {
 	unsigned char *memory;
 	unsigned int *reg_file;
-	unsigned int pc;
-	unsigned int binary_inst;
-	unsigned char inst[10];
+	unsigned int *pc;
+	unsigned int *binary_inst;
+	char *inst;
 };
 
 void program_head(void);
