@@ -1,11 +1,17 @@
 #include "alu.h"
 
+void print_value(signed int input1, signed int input2) {
+	printf("rs1 : %08x\n", input1);
+	printf("rs2 : %08x\n", input2);
+}
+
 unsigned int alu(signed int input1, signed int input2, unsigned int fn) {
 	// input1 : rs1 data
 	// input2 : rs2 data
 	// fn : alu function
   switch (fn) {
 	  case ALU_ADD:	// signed
+		  print_value(input1, input2);
 		  return (input1) + (input2);
 	  case ALU_SUB:
 		  return (input1) - (input2);
@@ -31,15 +37,19 @@ unsigned int alu(signed int input1, signed int input2, unsigned int fn) {
 		  return ((unsigned int)(input1) <= (unsigned int)(input2)) ? 1 : 0;
 	  case ALU_AUIPC:
 		  return (input1 + ((input2) << 12) & 0b11111111111111111111000000000000);
-	  case LUI:
+	  case ALU_LUI:
 		  return (input1 + ((input2) << 12) & 0b11111111111111111111000000000000);
-	  case SRLI:	// right shift on unsigned value -> logical shift
+		  /*
+	  case ALU_SRLI:	// right shift on unsigned value -> logical shift
 		  return (unsigned int)(input1) >> (input2);
-	  case SRL:
+		  */
+	  case ALU_SRL:
 		  return (unsigned int)(input1) >> (31 & (input2));
-	  case SRAI:	// right shift on singed value -> arithmetic shift
+		  /*
+	  case ALU_SRAI:	// right shift on singed value -> arithmetic shift
 		  return (input1) >> (input2);
-	  case SRA:
+		  */
+	  case ALU_SRA:
 		  return (input1) >> (31 & (input2));
 	  case ALU_JAL:
 		  return (input1) + ((input2) * 2);

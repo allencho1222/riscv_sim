@@ -33,7 +33,6 @@ int main(int argc, char **argv) {
 	program_head();
 	printf("Command : ");
 	scanf("%c", &command);
-	
 
 	execute(file_name, command);
 	printf("------------------------------------------\n");
@@ -45,7 +44,6 @@ void execute(char* file_name, unsigned char cmd) {
 	FILE* program = fopen(file_name, "rb");
 	unsigned int pc = PC_START;
 	unsigned int pc_copied = 0;	// for jal instruction
-	unsigned int output_pc = 0;
 	unsigned int fetched_inst;
 	unsigned char command = cmd;
 	struct display_data output;
@@ -59,7 +57,6 @@ void execute(char* file_name, unsigned char cmd) {
 		unsigned int memory_loaded_data;
 		unsigned int reg_write_data;
 
-		output_pc = pc - 0x4;
 		// RISC-V architecture can extract rs1, rs2, rd before decoding
 		rs1 = GET_RS1(fetched_inst);
 		rs2 = GET_RS2(fetched_inst);
@@ -77,24 +74,17 @@ void execute(char* file_name, unsigned char cmd) {
 
 		// if instruction is branch instruction and alu_out is 1
 		if (ctrl_sig.is_branch && alu_out) {
-			printf("branch occur \n");
-			output_pc = pc - 0x4;
 			pc += ((unsigned int)pc + ((unsigned int)SIGN_EXT_SB(GET_SB_IMM(fetched_inst)) * (unsigned int)2) - 0x4);
 			// SEEK_CUR indicates next pc
 			fseek(program, pc, SEEK_SET);
-			goto OUTPUT;
-			//continue;
+			continue;
 		}
 		if (ctrl_sig.is_jal || ctrl_sig.is_jalr) {
-			printf("JAL or JALR occur\n");
-			output_pc = pc - 0x4;
 			pc_copied = pc;
 			pc = alu_out;
 			fseek(program, pc, SEEK_SET);
 		}
 		if (ctrl_sig.is_aui) {
-			printf("AUIPC occur\n");
-			output_pc = pc- 0x4;
 			pc = alu_out;
 			fseek(program, pc, SEEK_SET);
 		}
@@ -109,10 +99,9 @@ void execute(char* file_name, unsigned char cmd) {
 			register_write(register_file, rd, reg_write_data, ctrl_sig.reg_write);
 		}
 
-		OUTPUT:
 		output.memory = memory;
 		output.reg_file = register_file;
-		output.pc = output_pc;
+		output.pc = pc - 0x4;
 		output.binary_inst = fetched_inst;
 		memcpy(output.inst, inst_str, 10);
 
@@ -123,7 +112,7 @@ void execute(char* file_name, unsigned char cmd) {
 		printf("---------------------------------------------\n\n");
 
 		printf("Command: ");
-		scanf(" %c", &command);
+		scanf("%c", &command);
 
 		if (command == 's') {
 			continue;
