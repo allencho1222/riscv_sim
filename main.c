@@ -64,6 +64,7 @@ void execute(char* file_name, unsigned char cmd) {
 		rs1 = GET_RS1(fetched_inst);
 		rs2 = GET_RS2(fetched_inst);
 		rd = GET_RD(fetched_inst);
+		printf("rs1 : %d, rs2 : %d, rd : %d\n", rs1, rs2, rd);
 
 		ctrl_sig = decode(fetched_inst, inst_str);
 		reg_read_data = register_read(register_file, rs1, rs2);
@@ -72,7 +73,9 @@ void execute(char* file_name, unsigned char cmd) {
 		// RS1 always goes into ALU, thus, we only consider RS2 type
 		// RS1 can be zero or PC or RS1
 		alu_in1 = get_alu_input1(ctrl_sig, reg_read_data.rs1_data, pc);
+		printf("alu_in1: %08x\n", alu_in1);
 		alu_in2 = get_alu_input2(ctrl_sig, reg_read_data.rs2_data, GET_SHM(fetched_inst), fetched_inst);
+		printf("alu_in2: %08x\n", alu_in2);
 		alu_out = alu(alu_in1, alu_in2, ctrl_sig.alu_fn);
 
 		// if instruction is branch instruction and alu_out is 1

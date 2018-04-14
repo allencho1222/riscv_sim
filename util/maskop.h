@@ -11,9 +11,9 @@
 #define GET_FN3(X)	((FN3_MASK) & (X))
 
 // RS1 mask
-#define RS1_MASK  0b00000001111100000000000000000000
+#define RS2_MASK  0b00000001111100000000000000000000
 // RS2 mask
-#define RS2_MASK  0b00000000000011111000000000000000
+#define RS1_MASK  0b00000000000011111000000000000000
 // RD mask
 #define RD_MASK   0b00000000000000000000111110000000
 
@@ -33,8 +33,8 @@
 
 // get RS1, RS2, RD
 // X is an instruction
-#define GET_RS1(X)  (((RS1_MASK) & (X)) >> (20))
-#define GET_RS2(X)  (((RS2_MASK) & (X)) >> (15))
+#define GET_RS1(X)  (((RS1_MASK) & (X)) >> (15))
+#define GET_RS2(X)  (((RS2_MASK) & (X)) >> (20))
 #define GET_RD(X)   (((RD_MASK) & (X)) >> (7))
 #define GET_SHM(X)  (((RS1_MASK) & (X)) >> (20))
 
