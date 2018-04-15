@@ -23,18 +23,4 @@ void program_output(struct display_data data) {
 
 	
 	printf("memory image start\n");
-	/*
-	for (i = 0; i < 4096; i += 1) {
-		if (i % 4 == 0) {
-			printf("%08x", i);
-			printf("\n");
-		}
-		printf("%02x  ", data.memory[i]);
-	}
-	*/
-	/*
-	// TODO : memory write to binary file
-	for (i = 0; i < 1024; i += 4)
-		fwrite(data.memory + i, 4, 1, mem_dump);
-		*/
 }

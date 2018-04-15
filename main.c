@@ -11,11 +11,18 @@
 #include "util/util.h"
 
 #define PC_START 0x0
-#define SP_START 0xEFF
+#define SP_START 0xF00
 #define GP_START 0x100
+
+#define BP_LIMIT 10
 
 unsigned int register_file[32];
 unsigned char memory[4096];
+
+unsigned char bp[10];
+int bp_index = 0;
+
+char in[50];
 
 void execute(char* file_name, unsigned char cmd);
 unsigned int get_alu_input1(struct ctrl_signal ctrl_sig, unsigned int rs1_data, unsigned int pc);
@@ -29,17 +36,40 @@ int main(int argc, char **argv) {
 	char file_name[100];
 	int i = 0;
 	unsigned char command;
+	FILE* memory_dump = fopen("mem_dump", "wb");
 
 	strcpy(file_name, argv[1]);
 
 	register_file[2] = SP_START;	// init sp
 	register_file[3] = GP_START;	// init gp
 
-	program_head();
-	printf("Command : ");
-	scanf("%c", &command); 
+	in[0] = 'a';
 
-	execute(file_name, command);
+	program_head();
+	
+	while (in[0] != 's') {
+		printf("Command : ");
+		fgets(in, 50, stdin);
+		if (bp_index > 9) {
+			printf("no more break point\n");
+			continue;
+		}
+		if (in[0] == 'b') {
+			bp[bp_index++] = atoi(in + 2);
+			for (i = 0; i < bp_index; i++) {
+				printf("break point (%d) : 0x%08x\n", i, bp[i]);
+			}
+		} else {
+			break;
+		}
+	}
+
+	execute(file_name, in[0]);
+	
+
+	for (i = 0; i < 4096; i++) {
+		fwrite(memory + i, 1, 1, memory_dump);
+	}
 
 	return 0;
 }
@@ -53,6 +83,7 @@ void execute(char* file_name, unsigned char cmd) {
 	unsigned char command = cmd;
 	struct display_data output;
 	char *inst_str = (char *)malloc(10);
+	int i = 0;
 
 	output.memory = memory;
 	output.reg_file = register_file;
@@ -76,6 +107,8 @@ void execute(char* file_name, unsigned char cmd) {
 		rs2 = GET_RS2(fetched_inst);
 		rd = GET_RD(fetched_inst);
 
+		printf("rs1 : %d, rs2: %d, rd: %d\n", rs1, rs2, rd);
+
 		ctrl_sig = decode(fetched_inst, inst_str);
 		reg_read_data = register_read(register_file, rs1, rs2);
 
@@ -86,6 +119,10 @@ void execute(char* file_name, unsigned char cmd) {
 		alu_in1 = get_alu_input1(ctrl_sig, reg_read_data.rs1_data, pc - 0x4);
 		//printf("get1 pass\t");
 		alu_in2 = get_alu_input2(ctrl_sig, reg_read_data.rs2_data, GET_SHM(fetched_inst), fetched_inst);
+		if (ctrl_sig.mem_write) {
+			printf("before sign-extension: %08x(%d)\n", reg_read_data.rs2_data, reg_read_data.rs2_data);
+			printf("store offset: %08x(%d)\n", alu_in2, alu_in2);
+		}
 		//printf("get2 pass\t");
 		alu_out = alu(alu_in1, alu_in2, ctrl_sig.alu_fn);
 		//printf("alu out pass\n");
@@ -120,14 +157,7 @@ void execute(char* file_name, unsigned char cmd) {
 				break;
 			}
 		}
-		if (ctrl_sig.is_aui) {
-			//output_pc = pc- 0x4;
-			//printf("aui: %d\n", alu_out);
-
-			printf("aui_out: %d\n", alu_out);
-			pc = alu_out;
-			fseek(program, pc, SEEK_SET);
-		}
+		printf("rs2_data: %08x\n", reg_read_data.rs2_data);
 
 		memory_loaded_data = memory_rw(memory, ctrl_sig.mem_write, ctrl_sig.mem_read, 
 					ctrl_sig.mem_type, alu_out, reg_read_data.rs2_data);
@@ -139,14 +169,45 @@ void execute(char* file_name, unsigned char cmd) {
 			register_write(register_file, rd, reg_write_data, ctrl_sig.reg_write);
 		}
 
-		if (command == 'r')
+		if (in[0] == 'r')
 			continue;
 
 		program_output(output);
 
 		printf("Command: ");
-		scanf(" %c", &command);
+		fgets(in, 50, stdin);
 
+		if (in[0] == 'b') {
+			if (bp_index > 9) {
+				printf("no more break point\n");
+			} else {
+				bp[bp_index++] = atoi(in + 2);
+				for (i = 0; i < bp_index; i++) {
+					printf("break point (%d) : 0x%08x\n", i, bp[i]);
+				}
+			}
+		} else if (in[0] == 's'){
+			continue;
+		} else {
+			if (pc - 0x4 == in[j_index++]
+		
+		while (in[0] != 's') {
+			printf("Command: ");
+			fgets(in, 50, stdin);
+			if (in[0] == 'b') {
+				if (bp_index > 9) {
+					printf("no more break point\n");
+					continue;
+				}
+				bp[bp_index++] = atoi(in + 2);
+				for (i = 0; i < bp_index; i++) {
+					printf("break point (%d) : 0x%08x\n", i, bp[i]);
+				}
+			} else {
+				break;
+			}
+
+		}
 		/*
 		if (command == 's') {
 			continue;
@@ -193,7 +254,8 @@ signed int get_imm_operand(unsigned int imm_type, unsigned int inst) {
 	} else if (imm_type == IMM_SB) {
 		return SIGN_EXT_SB(GET_SB_IMM(inst));
 	} else if (imm_type == IMM_U) {
-		return SIGN_EXT_U(GET_U_IMM(inst));
+		//return SIGN_EXT_U(GET_U_IMM(inst));
+		return GET_U_IMM(inst);
 	} else if (imm_type == IMM_UJ) {
 		return SIGN_EXT_UJ(GET_UJ_IMM(inst));
 	} else {	// IMM_NONE

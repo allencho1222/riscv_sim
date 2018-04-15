@@ -24,7 +24,7 @@
 #define SB1_IMM_MASK	0b10000000000000000000000000000000
 #define SB2_IMM_MASK	0b01111110000000000000000000000000
 #define SB3_IMM_MASK	0b00000000000000000000000010000000
-#define SB4_IMM_MASK	0b00000000000000000000111100000000
+#define SB4_IMM_MASK	0b00000000000000000000111110000000
 #define U_IMM_MASK      0b11111111111111111111000000000000
 #define UJ1_IMM_MASK    0b10000000000000000000000000000000
 #define UJ2_IMM_MASK    0b00000000000011111111000000000000
@@ -40,12 +40,13 @@
 
 // get immediate operand
 #define GET_I_IMM(X)	(((I_IMM_MASK) & (X)) >> (20))
-#define GET_S_IMM(X)	((((S1_IMM_MASK) & (X)) >> (7)) | (((S2_IMM_MASK) & (X) >> (20))))
-#define GET_SB_IMM(X)	((((SB4_IMM_MASK) & (X)) >> (8)) | (((SB2_IMM_MASK) & (X)) >> (21)) |	\
-			(((SB3_IMM_MASK) & (X)) << (3)) | (((SB1_IMM_MASK) & (X)) >> (20)))
-#define GET_U_IMM(X)	(((U_IMM_MASK) & (X)) >> (12))
-#define GET_UJ_IMM(X)	((((UJ4_IMM_MASK) & (X)) >> (21)) | (((UJ3_IMM_MASK) & (X)) >> (10)) | \
-			(((UJ2_IMM_MASK) & (X)) >> (1)) | (((UJ1_IMM_MASK) & (X)) >> (12)))
+#define GET_S_IMM(X)	(((((S1_IMM_MASK) & (X)) << (13)) | (((S2_IMM_MASK) & (X)))) >> (20))
+#define GET_SB_IMM(X)	(((((SB4_IMM_MASK) & (X)) << (12)) | (((SB2_IMM_MASK) & (X)) >> (1)) |	\
+			(((SB3_IMM_MASK) & (X)) << (23)) | (((SB1_IMM_MASK) & (X)))) >> (20))
+//#define GET_U_IMM(X)	(((U_IMM_MASK) & (X)) >> (12))
+#define GET_U_IMM(X)	(((U_IMM_MASK) & (X)) )
+#define GET_UJ_IMM(X)	(((((UJ4_IMM_MASK) & (X)) >> (9)) | (((UJ3_IMM_MASK) & (X)) << (2)) | \
+			(((UJ2_IMM_MASK) & (X)) << (11)) | (((UJ1_IMM_MASK) & (X)))) >> (12))
 
 // sign extension
 #define SIGN_EXT_I(X)	((((X) >> (11)) == 0) ? (X) : ((-1) ^ (0xFFF) | (X)))

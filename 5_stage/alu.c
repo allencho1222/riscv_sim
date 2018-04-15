@@ -35,14 +35,22 @@ unsigned int alu(signed int input1, signed int input2, unsigned int fn) {
 		  return ((input1) <= (input2)) ? 1 : 0;
 	  case ALU_SGEU:
 		  return ((unsigned int)(input1) <= (unsigned int)(input2)) ? 1 : 0;
+		  /*
 	  case ALU_AUIPC:
 		  printf("AUIPC: input2 << 12 : %d\n", input2 << 12);
 		  printf("AUIPC2: input2 << 12 & mask : %d\n", (input2 << 12) & 0b11111111111111111111000000000000);
 		  unsigned int data = (input2 << 12) & 0b11111111111111111111000000000000;
 		  printf("data: %0x\n", input1 + data);
 		  return (input1 + ((input2 << 12) & 0b11111111111111111111000000000000));
+		  */
+	  case ALU_AUIPC:
+		  return input1 + input2;
+		  /*
 	  case ALU_LUI:
 		  return (input1 + ((input2) << 12) & 0b11111111111111111111000000000000);
+		  */
+	  case ALU_LUI:
+		  return input1 + input2;
 	  case ALU_SRL:
 		  return (unsigned int)(input1) >> (31 & (input2));
 	  case ALU_SRA:
