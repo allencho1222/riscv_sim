@@ -51,14 +51,13 @@ unsigned int get_alu_input2(struct ctrl_signal ctrl_sig, unsigned int rs2_data, 
 signed int get_imm_operand(unsigned int imm_type, unsigned int inst);
 
 int main(int argc, char **argv) {
-	//int opt;
-	int break_point[10];
-	int break_idx = 0;	// 0 : there was no break point
 	char file_name[100];
+        char dump_file_name[100];
+	FILE* mem_dump;
 	int i = 0;
-	FILE* memory_dump = fopen("mem_dump", "wb");
 
 	strcpy(file_name, argv[1]);
+        strcpy(dump_file_name, argv[2]);
 
 	register_file[2] = SP_START;	// init sp
 	register_file[3] = GP_START;	// init gp
@@ -89,11 +88,12 @@ int main(int argc, char **argv) {
         
         // run simulator
 	execute(file_name);
-	
 
+        mem_dump = fopen(dump_file_name, "wb");
 	for (i = 0; i < 4096; i++) {
-		fwrite(memory + i, 1, 1, memory_dump);
+		fwrite(memory + i, 1, 1, mem_dump);
 	}
+        fclose(mem_dump);
 
 	return 0;
 }

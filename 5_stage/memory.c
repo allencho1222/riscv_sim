@@ -41,6 +41,7 @@ unsigned int memory_rw(unsigned char* memory,
 			default:
 				printf("memory type is error\n");
 		}
+                printf("loaded data: %08x\n", loaded_data);
 	}
 
 	// store
