@@ -10,7 +10,7 @@ void program_output(struct display_data data) {
 	int i = 0;
 	FILE* mem_dump = fopen("mem_dump", "ab");
 	printf("PC : 0x%08x\n", *data.pc);
-	printf("IR : 0x%08x (Instruction : %s)\n\n", *data.binary_inst, data.inst);
+	printf("IR : 0x%08x %s\n", *data.binary_inst, data.inst);
 
 	printf("GPR :");
 	for (i = 0; i < 32; i++) {

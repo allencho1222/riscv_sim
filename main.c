@@ -28,8 +28,6 @@ char command[50];
 unsigned int jump_point = -1;
 
 void enqueue_bp (unsigned int break_point) {
-  bp_front = bp_rear = 0;
-
   if ((bp_rear + 1) % 11 == bp_front) {
     printf("no more break point\n");
     return;
@@ -67,6 +65,7 @@ int main(int argc, char **argv) {
 
 	program_head();
 
+        // command processing logic
         while (1) {
           printf("Command: ");
           fgets(command, 50, stdin);
@@ -81,10 +80,14 @@ int main(int argc, char **argv) {
               jump_point = dequeue_bp();
               break;
             }
-          } else {  // r
+          } else if (command[0] == 'r'){  // r
             break;
+          } else {
+            printf("wrong command\n");
           }
         }
+        
+        // run simulator
 	execute(file_name);
 	
 
@@ -101,9 +104,8 @@ void execute(char* file_name) {
 	unsigned int pc_copied = 0;	// for jal instruction
 	unsigned int output_pc = 0;
 	unsigned int fetched_inst;
-	//unsigned char command = cmd;
 	struct display_data output;
-	char *inst_str = (char *)malloc(10);
+	char *inst_str = (char *)malloc(100);
 	int i = 0;
 
 	output.memory = memory;
@@ -121,55 +123,31 @@ void execute(char* file_name) {
 		unsigned int reg_write_data;
 
 		output_pc = pc - 0x4;
-		printf("current pc : %08x\t", output_pc);
 		// RISC-V architecture can extract rs1, rs2, rd before decoding
 		// register file array starts at zero index, so we substract 1 from register
 		rs1 = GET_RS1(fetched_inst);
 		rs2 = GET_RS2(fetched_inst);
 		rd = GET_RD(fetched_inst);
 
-		printf("rs1 : %d, rs2: %d, rd: %d\n", rs1, rs2, rd);
-
 		ctrl_sig = decode(fetched_inst, inst_str);
 		reg_read_data = register_read(register_file, rs1, rs2);
 
-
-		// RS1 always goes into ALU, thus, we only consider RS2 type
-		// RS1 can be zero or PC or RS1
-		// when offset is added to pc, pc has to have current pc, not next pc, so we substract 0x4
 		alu_in1 = get_alu_input1(ctrl_sig, reg_read_data.rs1_data, pc - 0x4);
-		//printf("get1 pass\t");
 		alu_in2 = get_alu_input2(ctrl_sig, reg_read_data.rs2_data, GET_SHM(fetched_inst), fetched_inst);
-		if (ctrl_sig.mem_write) {
-			printf("before sign-extension: %08x(%d)\n", reg_read_data.rs2_data, reg_read_data.rs2_data);
-			printf("store offset: %08x(%d)\n", alu_in2, alu_in2);
-		}
-		//printf("get2 pass\t");
 		alu_out = alu(alu_in1, alu_in2, ctrl_sig.alu_fn);
-		//printf("alu out pass\n");
-		//printf("alu_in1 : %d, alu_in2 : %d, alu_out : %d \n", alu_in1, alu_in2, alu_out);
-
+                //
 		// if instruction is branch instruction and alu_out is 1
 		if (ctrl_sig.is_branch && alu_out) {
-			//output_pc = pc - 0x4;
-			//
 			signed int offset = SIGN_EXT_SB(GET_SB_IMM(fetched_inst)) * 2;
 			pc = pc - 0x4 + offset;
-			printf("offset(hex) : %08x\n", offset);
-			printf("offset(dec) : %d\n", offset); 
-			printf("output_pc: %08x\n", output_pc);
-			printf("target pc : %08x\n", offset + output_pc);
-			// SEEK_CUR indicates next pc
 			fseek(program, pc, SEEK_SET);
 		}
 		if (ctrl_sig.is_jal) {
-			//output_pc = pc - 0x4;
 			pc_copied = pc;
 			pc = alu_out;
 			fseek(program, pc, SEEK_SET);
 		}
 		if (ctrl_sig.is_jalr) {
-			//output_pc = pc - 0x4;
 			pc_copied = pc;
 			pc = alu_out;
 			fseek(program, pc, SEEK_SET);
@@ -178,26 +156,29 @@ void execute(char* file_name) {
 				break;
 			}
 		}
-		printf("rs2_data: %08x\n", reg_read_data.rs2_data);
 
 		memory_loaded_data = memory_rw(memory, ctrl_sig.mem_write, ctrl_sig.mem_read, 
 					ctrl_sig.mem_type, alu_out, reg_read_data.rs2_data);
 		
-		// data to register write : from memory or alu or pc
 		reg_write_data = (ctrl_sig.mem_read) ? memory_loaded_data : 
 				 (ctrl_sig.is_jalr || ctrl_sig.is_jal) ? pc_copied : alu_out;
 		if (rd != 0) {
 			register_write(register_file, rd, reg_write_data, ctrl_sig.reg_write);
 		}
 
+                // command processing logic
 		if (command[0] == 'r')
 			continue;
 
                 if (command[0] != 'j') {               // only s and j can be here;
                   program_output(output);
                 } else if (command[0] == 'j' && jump_point != -1) {
-                  jump_point = -1;
-                  program_output(output);
+                  if (jump_point == output_pc) {
+                    jump_point = -1;
+                    program_output(output);
+                  } else {
+                    continue;
+                  }
                 } else {}
 
                 while (1) {
@@ -212,14 +193,16 @@ void execute(char* file_name) {
                       printf("no break point exists\n");
                     } else {
                       jump_point = dequeue_bp();
+                      printf("jump_point : %d \n", jump_point);
                       break;
                     }
-                  } else {  // r
+                  } else if (command[0] == 'r'){  // r
                     break;
+                  } else {
+                    printf("wrong command\n");
                   }
                 }
 	}
-        program_output(output);
 }
 
 
