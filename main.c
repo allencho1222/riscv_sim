@@ -19,12 +19,35 @@
 unsigned int register_file[32];
 unsigned char memory[4096];
 
-unsigned char bp[10];
-int bp_index = 0;
+unsigned char bp[11];
+int bp_front = 0;
+int bp_rear = 0;
 
-char in[50];
+char command[50];
 
-void execute(char* file_name, unsigned char cmd);
+unsigned int jump_point = -1;
+
+void enqueue_bp (unsigned int break_point) {
+  bp_front = bp_rear = 0;
+
+  if ((bp_rear + 1) % 11 == bp_front) {
+    printf("no more break point\n");
+    return;
+  }
+
+  bp[bp_rear++] = break_point;
+}
+
+unsigned int dequeue_bp () {
+  return bp[bp_front++];
+}
+
+int is_bp_empty() {
+  return (bp_front == bp_rear) ? 1 : 0;
+}
+
+  
+void execute(char* file_name);
 unsigned int get_alu_input1(struct ctrl_signal ctrl_sig, unsigned int rs1_data, unsigned int pc);
 unsigned int get_alu_input2(struct ctrl_signal ctrl_sig, unsigned int rs2_data, unsigned int shm, unsigned int inst);
 signed int get_imm_operand(unsigned int imm_type, unsigned int inst);
@@ -35,7 +58,6 @@ int main(int argc, char **argv) {
 	int break_idx = 0;	// 0 : there was no break point
 	char file_name[100];
 	int i = 0;
-	unsigned char command;
 	FILE* memory_dump = fopen("mem_dump", "wb");
 
 	strcpy(file_name, argv[1]);
@@ -43,28 +65,27 @@ int main(int argc, char **argv) {
 	register_file[2] = SP_START;	// init sp
 	register_file[3] = GP_START;	// init gp
 
-	in[0] = 'a';
-
 	program_head();
-	
-	while (in[0] != 's') {
-		printf("Command : ");
-		fgets(in, 50, stdin);
-		if (bp_index > 9) {
-			printf("no more break point\n");
-			continue;
-		}
-		if (in[0] == 'b') {
-			bp[bp_index++] = atoi(in + 2);
-			for (i = 0; i < bp_index; i++) {
-				printf("break point (%d) : 0x%08x\n", i, bp[i]);
-			}
-		} else {
-			break;
-		}
-	}
 
-	execute(file_name, in[0]);
+        while (1) {
+          printf("Command: ");
+          fgets(command, 50, stdin);
+          if (command[0] == 's') {
+            break;
+          } else if (command[0] == 'b') {
+            enqueue_bp (atoi(command + 2));
+          } else if (command[0] == 'j') {
+            if (is_bp_empty()) {
+              printf("no break point exists\n");
+            } else {
+              jump_point = dequeue_bp();
+              break;
+            }
+          } else {  // r
+            break;
+          }
+        }
+	execute(file_name);
 	
 
 	for (i = 0; i < 4096; i++) {
@@ -74,13 +95,13 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-void execute(char* file_name, unsigned char cmd) {
+void execute(char* file_name) {
 	FILE* program = fopen(file_name, "rb");
 	unsigned int pc = PC_START;
 	unsigned int pc_copied = 0;	// for jal instruction
 	unsigned int output_pc = 0;
 	unsigned int fetched_inst;
-	unsigned char command = cmd;
+	//unsigned char command = cmd;
 	struct display_data output;
 	char *inst_str = (char *)malloc(10);
 	int i = 0;
@@ -169,53 +190,36 @@ void execute(char* file_name, unsigned char cmd) {
 			register_write(register_file, rd, reg_write_data, ctrl_sig.reg_write);
 		}
 
-		if (in[0] == 'r')
+		if (command[0] == 'r')
 			continue;
 
-		program_output(output);
+                if (command[0] != 'j') {               // only s and j can be here;
+                  program_output(output);
+                } else if (command[0] == 'j' && jump_point != -1) {
+                  jump_point = -1;
+                  program_output(output);
+                } else {}
 
-		printf("Command: ");
-		fgets(in, 50, stdin);
-
-		if (in[0] == 'b') {
-			if (bp_index > 9) {
-				printf("no more break point\n");
-			} else {
-				bp[bp_index++] = atoi(in + 2);
-				for (i = 0; i < bp_index; i++) {
-					printf("break point (%d) : 0x%08x\n", i, bp[i]);
-				}
-			}
-		} else if (in[0] == 's'){
-			continue;
-		} else {
-			if (pc - 0x4 == in[j_index++]
-		
-		while (in[0] != 's') {
-			printf("Command: ");
-			fgets(in, 50, stdin);
-			if (in[0] == 'b') {
-				if (bp_index > 9) {
-					printf("no more break point\n");
-					continue;
-				}
-				bp[bp_index++] = atoi(in + 2);
-				for (i = 0; i < bp_index; i++) {
-					printf("break point (%d) : 0x%08x\n", i, bp[i]);
-				}
-			} else {
-				break;
-			}
-
-		}
-		/*
-		if (command == 's') {
-			continue;
-		} else if (command == 'r') {
-			continue;
-		} else {}
-		*/
+                while (1) {
+                  printf("Command: ");
+                  fgets(command, 50, stdin);
+                  if (command[0] == 's') {
+                    break;
+                  } else if (command[0] == 'b') {
+                    enqueue_bp (atoi(command + 2));
+                  } else if (command[0] == 'j') {
+                    if (is_bp_empty()) {
+                      printf("no break point exists\n");
+                    } else {
+                      jump_point = dequeue_bp();
+                      break;
+                    }
+                  } else {  // r
+                    break;
+                  }
+                }
 	}
+        program_output(output);
 }
 
 
