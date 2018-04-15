@@ -15,7 +15,7 @@ unsigned int memory_rw(unsigned char* memory,
 	if (!mem_read && !mem_write)
 		return 0;
 
-	printf("memory access address : %08x(%d)\n", addr, addr);
+	//printf("memory access address : %08x(%d)\n", addr, addr);
 	// load
 	if (mem_read) {
 		switch (mem_type) {
@@ -41,12 +41,12 @@ unsigned int memory_rw(unsigned char* memory,
 			default:
 				printf("memory type is error\n");
 		}
-                printf("loaded data: %08x\n", loaded_data);
+                //printf("loaded data: %08x\n", loaded_data);
 	}
 
 	// store
 	if (mem_write) {
-			printf("memory write data : %08x\n", data);
+			//printf("memory write data : %08x\n", data);
 		switch (mem_type) {
 			case BYTE:
 				memcpy(memory + addr, &data, 1);

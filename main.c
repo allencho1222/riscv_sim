@@ -108,20 +108,24 @@ void execute(char* file_name) {
 	char *inst_str = (char *)malloc(100);
 	int i = 0;
 
+        struct ctrl_signal ctrl_sig;
+        struct two_reg_data reg_read_data;
+        unsigned int rs1, rs2, rd;
+        unsigned int alu_in1, alu_in2, alu_out;
+        unsigned int memory_loaded_data;
+        unsigned int reg_write_data;
+
 	output.memory = memory;
 	output.reg_file = register_file;
 	output.pc = &output_pc;
 	output.binary_inst = &fetched_inst;
 	output.inst = inst_str;
+        output.ctrl_sig = &ctrl_sig;
+        output.loaded_data = &memory_loaded_data;
+        output.wr_data = &reg_read_data.rs2_data;
+        output.addr = &alu_out;
 
 	while ((fetched_inst = fetch(program, &pc)) != (unsigned int) 0) {
-		struct ctrl_signal ctrl_sig;
-		struct two_reg_data reg_read_data;
-		unsigned int rs1, rs2, rd;
-		unsigned int alu_in1, alu_in2, alu_out;
-		unsigned int memory_loaded_data;
-		unsigned int reg_write_data;
-
 		output_pc = pc - 0x4;
 		// RISC-V architecture can extract rs1, rs2, rd before decoding
 		// register file array starts at zero index, so we substract 1 from register

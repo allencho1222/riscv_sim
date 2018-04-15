@@ -4,7 +4,7 @@ OBJS = $(SUB_DIR)/fetch.o $(SUB_DIR)/decode.o $(SUB_DIR)/alu.o $(SUB_DIR)/memory
 TARGET = rv32i_iss
 
 $(TARGET) : main.o $(OBJS) util/util.o
-	$(CC) -o $(TARGET) $(OBJS)
+	$(CC) -o $(TARGET) main.o $(OBJS) util/util.o
 
 $(SUB_DIR)/%.o: $(SUB_DIR)/%.c
 	$(CC) -c $< -o $@
@@ -14,3 +14,9 @@ util/util.o: util/util.c
 
 main.o: main.c
 	$(CC) -c main.c
+
+
+clean:
+	rm -rf *.o
+	rm -rf $(SUB_DIR)/*.o
+	rm -rf util/util.o
