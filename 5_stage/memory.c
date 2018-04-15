@@ -39,15 +39,23 @@ unsigned int memory_rw(unsigned char* memory,
 
 	// store
 	if (mem_write) {
-		//printf("mem addr: %d\n", addr);
 		switch (mem_type) {
 			case BYTE:
+				printf("BYTE\n");
+				printf("mem addr: %08x\n", addr);
+				printf("mem write data: %x\n", data);
 				memcpy(memory + addr, &data, 1);
 				break;
 			case HALF:
+				printf("HALF\n");
+				printf("mem addr: %08x\n", addr);
+				printf("mem write data: %x\n", data);
 				memcpy(memory + addr, &data, 2);
 				break;
 			case WORD:
+				printf("WORD\n");
+				printf("mem addr: %08x\n", addr);
+				printf("mem write data: %x\n", data);
 				memcpy(memory + addr, &data, 4);
 				break;
 			default:

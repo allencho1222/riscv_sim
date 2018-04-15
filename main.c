@@ -67,9 +67,9 @@ void execute(char* file_name, unsigned char cmd) {
 		unsigned int alu_in1, alu_in2, alu_out;
 		unsigned int memory_loaded_data;
 		unsigned int reg_write_data;
-		//printf("%08x\t", fetched_inst);
 
 		output_pc = pc - 0x4;
+		printf("current pc : %08x\t", output_pc);
 		// RISC-V architecture can extract rs1, rs2, rd before decoding
 		// register file array starts at zero index, so we substract 1 from register
 		rs1 = GET_RS1(fetched_inst);
@@ -94,11 +94,15 @@ void execute(char* file_name, unsigned char cmd) {
 		// if instruction is branch instruction and alu_out is 1
 		if (ctrl_sig.is_branch && alu_out) {
 			//output_pc = pc - 0x4;
-			pc += ((unsigned int)pc + ((unsigned int)SIGN_EXT_SB(GET_SB_IMM(fetched_inst)) * (unsigned int)2) - 0x4);
+			//
+			signed int offset = SIGN_EXT_SB(GET_SB_IMM(fetched_inst)) * 2;
+			pc = pc - 0x4 + offset;
+			printf("offset(hex) : %08x\n", offset);
+			printf("offset(dec) : %d\n", offset); 
+			printf("output_pc: %08x\n", output_pc);
+			printf("target pc : %08x\n", offset + output_pc);
 			// SEEK_CUR indicates next pc
 			fseek(program, pc, SEEK_SET);
-			program_output(output);
-			continue;
 		}
 		if (ctrl_sig.is_jal) {
 			//output_pc = pc - 0x4;
@@ -118,6 +122,9 @@ void execute(char* file_name, unsigned char cmd) {
 		}
 		if (ctrl_sig.is_aui) {
 			//output_pc = pc- 0x4;
+			//printf("aui: %d\n", alu_out);
+
+			printf("aui_out: %d\n", alu_out);
 			pc = alu_out;
 			fseek(program, pc, SEEK_SET);
 		}

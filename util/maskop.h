@@ -36,7 +36,7 @@
 #define GET_RS1(X)  (((RS1_MASK) & (X)) >> (15))
 #define GET_RS2(X)  (((RS2_MASK) & (X)) >> (20))
 #define GET_RD(X)   (((RD_MASK) & (X)) >> (7))
-#define GET_SHM(X)  (((RS1_MASK) & (X)) >> (20))
+#define GET_SHM(X)  (((RS2_MASK) & (X)) >> (20))
 
 // get immediate operand
 #define GET_I_IMM(X)	(((I_IMM_MASK) & (X)) >> (20))
