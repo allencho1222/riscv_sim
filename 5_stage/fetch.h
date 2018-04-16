@@ -4,5 +4,5 @@
 #include <stdlib.h>
 #include <string.h>
 
-unsigned int fetch(FILE* program, unsigned int* pc);
+unsigned int fetch(unsigned int* pc, unsigned char *memory);
 #endif

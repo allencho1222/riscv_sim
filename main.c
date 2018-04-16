@@ -27,6 +27,8 @@ char command[50];
 
 unsigned int jump_point = -1;
 
+int final_pc = 0;
+
 void enqueue_bp (unsigned int break_point) {
   if ((bp_rear + 1) % 11 == bp_front) {
     printf("no more break point\n");
@@ -45,12 +47,14 @@ int is_bp_empty() {
 }
 
   
+void init_inst(FILE* program);
 void execute(char* file_name);
 unsigned int get_alu_input1(struct ctrl_signal ctrl_sig, unsigned int rs1_data, unsigned int pc);
 unsigned int get_alu_input2(struct ctrl_signal ctrl_sig, unsigned int rs2_data, unsigned int shm, unsigned int inst);
 signed int get_imm_operand(unsigned int imm_type, unsigned int inst);
 
 int main(int argc, char **argv) {
+	FILE* program;
 	char file_name[100];
         char dump_file_name[100];
 	FILE* mem_dump;
@@ -59,8 +63,12 @@ int main(int argc, char **argv) {
 	strcpy(file_name, argv[1]);
         strcpy(dump_file_name, argv[2]);
 
+        program = fopen(file_name, "rb");
+
 	register_file[2] = SP_START;	// init sp
 	register_file[3] = GP_START;	// init gp
+
+        init_inst(program);
 
 	program_head();
 
@@ -77,6 +85,11 @@ int main(int argc, char **argv) {
               printf("no break point exists\n");
             } else {
               jump_point = dequeue_bp();
+              if (jump_point > final_pc) {
+                printf("break point is out of instruction memory address\n");
+                jump_point = -1;
+                continue;
+              }
               break;
             }
           } else if (command[0] == 'r'){  // r
@@ -125,7 +138,7 @@ void execute(char* file_name) {
         output.wr_data = &reg_read_data.rs2_data;
         output.addr = &alu_out;
 
-	while ((fetched_inst = fetch(program, &pc)) != (unsigned int) 0) {
+	while ((fetched_inst = fetch(&pc, memory)) != (unsigned int) 0) {
 		output_pc = pc - 0x4;
 		// RISC-V architecture can extract rs1, rs2, rd before decoding
 		// register file array starts at zero index, so we substract 1 from register
@@ -209,6 +222,17 @@ void execute(char* file_name) {
 	}
 }
 
+void init_inst(FILE* program) {
+  int i = 0;
+
+  for (i = 0 ; ; i += 4) {
+    if(fread(memory + i, 4, 1, program) == 0) {
+      final_pc = ftell(program) - 0x4;
+      printf("final pc : %08x\n", final_pc);
+      break;
+    }
+  }
+}
 
 unsigned int get_alu_input1(struct ctrl_signal ctrl_sig, unsigned int rs1_data, unsigned int pc) {
 	if(ctrl_sig.rs1_type == RS1) {
